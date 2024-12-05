@@ -1,0 +1,10 @@
+server:
+  port: ":8081"
+db:
+  redis: 
+    addr: "redis:6379"
+    password: ""
+    db: 0
+  sqlite: "./sqlite.db"
+
+env: "development"

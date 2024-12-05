@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+
+  user-service:
+    build:
+      context: ./user-service
+    container_name: user-service
+    ports:
+      - "8080:8080"
+    depends_on:
+      - redis
+    environment:
+      REDIS_ADDR: redis:6379
+    networks:
+      - app-network
+
+  tweets-service:
+    build:
+      context: ./tweets-service
+    container_name: tweets-service
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis
+    environment:
+      REDIS_ADDR: redis:6379
+    networks:
+      - app-network
+
+  timeline-service:
+    build:
+      context: ./timeline-service
+    container_name: timeline-service
+    ports:
+      - "8082:8082"
+    depends_on:
+      - redis
+    environment:
+      REDIS_ADDR: redis:6379
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

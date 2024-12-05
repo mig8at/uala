@@ -1,0 +1,7 @@
+server:
+  port: ":8082"
+db:
+  badger: "./badger.db"
+  sqlite: "./sqlite.db"
+
+env: "development"
