@@ -1,0 +1,21 @@
+# Assumptions
+
+1. Autenticación:
+   - No se maneja autenticación de usuarios completa (signin/login).
+   - Se asume que el usuario autenticado se identifica mediante un header con el formato:
+     User-ID: <UUID del usuario>
+
+2. Escalabilidad:
+   - Redis se usa como sistema principal para optimizar lecturas, permitiendo escalar a millones de usuarios.
+   - SQLite es usado únicamente como base de datos para pruebas. En producción, se recomienda una base más robusta como PostgreSQL o Cassandra.
+
+3. Persistencia:
+   - Los datos de usuarios y tweets se almacenan en SQLite para pruebas.
+   - Redis se usa para timelines y procesamiento rápido en memoria.
+
+4. Limitaciones:
+   - Los tweets están limitados a 280 caracteres.
+   - No se implementan controles avanzados como eliminación de datos en cascada (e.g., eliminar todos los tweets de un usuario al borrarlo).
+
+5. Testing:
+   - Se priorizan los casos de uso principales: creación de usuarios, tweets, follow/unfollow y generación de timelines.

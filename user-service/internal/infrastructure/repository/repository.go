@@ -27,6 +27,8 @@ func (r *repository) Create(ctx context.Context, createUser *dto.CreateUser) (*m
 		Name:     createUser.Name,
 		Nickname: createUser.Nickname,
 		Email:    createUser.Email,
+		Bio:      createUser.Bio,
+		Avatar:   createUser.Avatar,
 	}
 
 	if err := r.db.WithContext(ctx).Create(userModel).Error; err != nil {
@@ -54,9 +56,7 @@ func (r *repository) Create(ctx context.Context, createUser *dto.CreateUser) (*m
 
 	// Almacenar en Redis
 	key := fmt.Sprintf("users:%s", userModel.ID)
-	if err := r.redis.Set(ctx, key, userData, 0).Err(); err != nil {
-		return nil, fmt.Errorf("error al guardar el usuario en Redis: %w", err)
-	}
+	r.redis.Set(ctx, key, userData, 0).Err()
 
 	return userModel, nil
 }
