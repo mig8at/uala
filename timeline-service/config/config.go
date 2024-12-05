@@ -1,16 +1,17 @@
 package config
 
 import (
+	"context"
 	"log"
 
-	"github.com/dgraph-io/badger/v4"
+	"github.com/redis/go-redis/v9"
 	"github.com/spf13/viper"
 )
 
 type Config struct {
-	Port       string
-	BadgerPath string
-	Env        string
+	Port         string
+	Env          string
+	RedisOptions *redis.Options
 }
 
 func LoadConfig() *Config {
@@ -23,18 +24,22 @@ func LoadConfig() *Config {
 	}
 
 	return &Config{
-		Port:       viper.GetString("server.port"),
-		BadgerPath: viper.GetString("db.badger"),
-		Env:        viper.GetString("env"),
+		Port: viper.GetString("server.port"),
+		Env:  viper.GetString("env"),
+		RedisOptions: &redis.Options{
+			Addr:     viper.GetString("db.redis.addr"),
+			Password: viper.GetString("db.redis.password"),
+			DB:       viper.GetInt("db.redis.db"),
+		},
 	}
 }
+func (c *Config) Redis() *redis.Client {
+	rdb := redis.NewClient(c.RedisOptions)
 
-func (c *Config) Badger() *badger.DB {
-	opts := badger.DefaultOptions("").WithInMemory(true).WithLogger(nil)
-	db, err := badger.Open(opts)
-	if err != nil {
-		log.Fatal(err)
+	// Optionally, test the connection
+	ctx := context.Background()
+	if err := rdb.Ping(ctx).Err(); err != nil {
+		log.Fatalf("Error connecting to Redis: %v", err)
 	}
-
-	return db
+	return rdb
 }

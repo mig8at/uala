@@ -40,7 +40,7 @@ func (s *userService) GetById(ctx context.Context, id string) (*dto.User, error)
 	ctx, cancel := context.WithTimeout(ctx, 1*time.Second)
 	defer cancel()
 
-	getUser, err := s.repo.GetById(ctx, id)
+	getUser, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}

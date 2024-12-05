@@ -8,7 +8,7 @@ import (
 
 type UserRepository interface {
 	Create(ctx context.Context, user *dto.CreateUser) (*models.User, error)
-	GetById(ctx context.Context, id string) (*models.User, error)
+	GetByID(ctx context.Context, id string) (*models.User, error)
 	Paginate(ctx context.Context, page, limit int) ([]models.User, error)
 
 	Follow(ctx context.Context, id, followerID string) error

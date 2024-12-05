@@ -2,7 +2,6 @@ package config
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"user_service/internal/domain/models"
 
@@ -59,11 +58,6 @@ func (c *Config) Sqlite() *gorm.DB {
 
 func (c *Config) Redis() *redis.Client {
 	rdb := redis.NewClient(c.RedisOptions)
-
-	fmt.Println("Connecting to Redis...")
-	fmt.Printf("Addr: %s\n", c.RedisOptions.Addr)
-	fmt.Printf("Password: %s\n", c.RedisOptions.Password)
-	fmt.Printf("DB: %d\n", c.RedisOptions.DB)
 
 	// Optionally, test the connection
 	ctx := context.Background()

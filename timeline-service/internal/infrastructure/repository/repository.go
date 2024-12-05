@@ -4,111 +4,149 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"timeline-service/internal/domain/models"
 	"timeline-service/internal/interfaces"
 
-	"github.com/dgraph-io/badger/v4"
+	"github.com/redis/go-redis/v9"
 )
 
 type Repository struct {
-	db *badger.DB
+	redis *redis.Client
 }
 
-func NewRepository(db *badger.DB) interfaces.Repository {
-	return &Repository{db: db}
+func NewRepository(redis *redis.Client) interfaces.Repository {
+	return &Repository{redis: redis}
 }
 
-func (r *Repository) Paginate(ctx context.Context, userID string, limit, offset int) ([]*models.Tweet, error) {
-	tweets := make([]*models.Tweet, 0)
+func (r *Repository) Paginate(ctx context.Context, userID string, page, size int) ([]*models.Timeline, error) {
 
-	err := r.db.View(func(txn *badger.Txn) error {
-		opts := badger.DefaultIteratorOptions
-		opts.PrefetchSize = limit + offset
-		it := txn.NewIterator(opts)
-		defer it.Close()
+	start := (page - 1) * size
+	end := start + size - 1
 
-		prefix := []byte("tweets:")
-		count := 0
-		skipped := 0
+	timelineKey := fmt.Sprintf("timeline:%s", userID)
 
-		for it.Seek(prefix); it.ValidForPrefix(prefix); it.Next() {
-			if skipped < offset {
-				skipped++
-				continue
-			}
-			if count >= limit {
-				break
-			}
+	// Get the tweet IDs from Redis
+	tweetIDs, err := r.redis.LRange(ctx, timelineKey, int64(start), int64(end)).Result()
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving timeline: %w", err)
+	}
 
-			item := it.Item()
-			var tweet models.Tweet
-			err := item.Value(func(val []byte) error {
-				return json.Unmarshal(val, &tweet)
-			})
-			if err != nil {
-				return fmt.Errorf("error deserializando el tweet: %w", err)
-			}
+	if len(tweetIDs) == 0 {
+		// No tweets to process
+		return []*models.Timeline{}, nil
+	}
 
-			tweets = append(tweets, &tweet)
-			count++
+	// Build tweet keys
+	tweetKeys := make([]string, len(tweetIDs))
+	for i, tweetID := range tweetIDs {
+		tweetKeys[i] = fmt.Sprintf("tweets:%s", tweetID)
+	}
+
+	// Fetch all tweets at once
+	tweetDataList, err := r.redis.MGet(ctx, tweetKeys...).Result()
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving tweets: %w", err)
+	}
+
+	// Map to hold unique user IDs
+	userIDSet := make(map[string]struct{})
+	// Slice to hold tweets
+	tweets := make([]*models.Tweet, 0, len(tweetDataList))
+
+	for i, tweetData := range tweetDataList {
+
+		if tweetData == nil {
+			// Tweet does not exist
+			continue
+		}
+		tweetJSON, ok := tweetData.(string)
+		if !ok {
+			return nil, fmt.Errorf("unexpected data type for tweetID %s", tweetIDs[i])
 		}
 
-		return nil
-	})
-	if err != nil {
-		return nil, err
+		var tweet models.Tweet
+		if err := json.Unmarshal([]byte(tweetJSON), &tweet); err != nil {
+			return nil, fmt.Errorf("error unmarshalling tweetID %s: %w", tweetIDs[i], err)
+		}
+		tKey := tweetIDs[i]
+		tweet.ID = tKey
+		tweets = append(tweets, &tweet)
+		userIDSet[tweet.UserID] = struct{}{}
 	}
 
-	return tweets, nil
+	fmt.Println(start, end, tweets, userIDSet)
+
+	// Collect unique user IDs
+	userIDs := make([]string, 0, len(userIDSet))
+	for uid := range userIDSet {
+		userIDs = append(userIDs, uid)
+	}
+
+	// Build user keys
+	userKeys := make([]string, len(userIDs))
+	for i, uid := range userIDs {
+		userKeys[i] = fmt.Sprintf("users:%s", uid)
+	}
+
+	// Fetch all users at once
+	userDataList, err := r.redis.MGet(ctx, userKeys...).Result()
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving users: %w", err)
+	}
+
+	// Map to hold users
+	userMap := make(map[string]*models.User)
+	for i, userData := range userDataList {
+		if userData == nil {
+			// User does not exist
+			continue
+		}
+		userJSON, ok := userData.(string)
+
+		if !ok {
+			return nil, fmt.Errorf("unexpected data type for userID %s", userIDs[i])
+		}
+
+		var user models.User
+		if err := json.Unmarshal([]byte(userJSON), &user); err != nil {
+			return nil, fmt.Errorf("error unmarshalling userID %s: %w", userIDs[i], err)
+		}
+
+		userMap[userIDs[i]] = &user
+	}
+
+	fmt.Println(userDataList, len(userMap))
+
+	// Build the timeline
+	timeline := make([]*models.Timeline, 0, len(tweets))
+	for _, tweet := range tweets {
+		user, ok := userMap[tweet.UserID]
+		fmt.Println(user)
+		if !ok {
+			// User not found, skip this tweet
+			continue
+		}
+		timeline = append(timeline, &models.Timeline{
+			ID:       tweet.ID,
+			Content:  tweet.Content,
+			Likes:    tweet.Likes,
+			Shares:   tweet.Shares,
+			Comments: tweet.Comments,
+			UserID:   user.ID,
+			Name:     user.Name,
+			Nickname: user.Nickname,
+			Avatar:   user.Avatar,
+		})
+	}
+
+	return timeline, nil
 }
 
-func (r *Repository) SaveUser(ctx context.Context, user *models.User) error {
-	key := []byte(fmt.Sprintf("users:%s", user.ID))
-
-	// Serializa el usuario a JSON
-	data, err := json.Marshal(user)
-	if err != nil {
-		return fmt.Errorf("error serializando el usuario: %w", err)
+func getKey(key string) string {
+	parts := strings.Split(key, ":")
+	if len(parts) > 1 {
+		return parts[1]
 	}
-
-	// Inicia una transacción de escritura
-	err = r.db.Update(func(txn *badger.Txn) error {
-		err := txn.Set(key, data)
-		if err != nil {
-			return fmt.Errorf("error guardando el usuario: %w", err)
-		}
-		return nil
-	})
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (r *Repository) SaveTweet(ctx context.Context, tweet *models.Tweet) error {
-	// Construye la clave
-	key := []byte(fmt.Sprintf("tweets:%s:%s", tweet.UserID, tweet.ID))
-
-	// Serializa el tweet a JSON
-	data, err := json.Marshal(tweet)
-	if err != nil {
-		return fmt.Errorf("error serializando el tweet: %w", err)
-	}
-
-	// Inicia una transacción de escritura
-	err = r.db.Update(func(txn *badger.Txn) error {
-		err := txn.Set(key, data)
-		if err != nil {
-			return fmt.Errorf("error guardando el tweet: %w", err)
-		}
-		return nil
-	})
-
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return key
 }

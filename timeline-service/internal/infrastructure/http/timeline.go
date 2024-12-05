@@ -34,21 +34,21 @@ func (s *HTTPServer) Run(port string) {
 func (s *HTTPServer) registerRoutes() {
 	authorized := s.engine.Group("/", AuthMiddleware())
 	{
-		authorized.GET("/timeline", s.paginate)
+		authorized.GET("/paginate", s.paginate)
 
 	}
 }
 
 func (s *HTTPServer) paginate(c *gin.Context) {
 	id := c.GetString("userID")
-	limit := c.DefaultQuery("limit", "10")
-	offset := c.DefaultQuery("offset", "0")
+	page := c.DefaultQuery("page", "1")
+	size := c.DefaultQuery("size", "10")
 
-	limitInt, _ := strconv.Atoi(limit)
-	offsetInt, _ := strconv.Atoi(offset)
+	pageInt, _ := strconv.Atoi(page)
+	sizeInt, _ := strconv.Atoi(size)
 
 	// Paginar los usuarios usando el servicio
-	tweets, err := s.service.Paginate(c.Request.Context(), id, limitInt, offsetInt)
+	tweets, err := s.service.Paginate(c.Request.Context(), id, pageInt, sizeInt)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

@@ -125,10 +125,6 @@ func (s *Seeder) Clean() {
 		}
 	}
 
-	if err := deleteKeysWithPrefix(ctx, s.redis, "tweet:"); err != nil {
-		fmt.Printf("Error al borrar claves con prefijo tweet:: %v\n", err)
-	}
-
 	if err := deleteKeysWithPrefix(ctx, s.redis, "tweets:"); err != nil {
 		fmt.Printf("Error al borrar claves con prefijo tweets:: %v\n", err)
 	}

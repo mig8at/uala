@@ -1,11 +1,12 @@
 package models
 
 type Tweet struct {
-	ID      string `json:"id"`
-	UserID  string `json:"userId"`
-	Content string `json:"content"`
-	Likes   int    `json:"likes"`
-	Shares  int    `json:"shares"`
+	ID       string `json:"id"`
+	UserID   string `json:"userId"`
+	Content  string `json:"content"`
+	Likes    int    `json:"likes"`
+	Shares   int    `json:"shares"`
+	Comments int    `json:"comments"`
 }
 
 type User struct {
@@ -16,6 +17,14 @@ type User struct {
 }
 
 type Timeline struct {
-	User  *User  `json:"user"`
-	Tweet *Tweet `json:"tweet"`
+	ID       string `json:"id"`
+	Content  string `json:"content"`
+	Likes    int    `json:"likes"`
+	Shares   int    `json:"shares"`
+	Comments int    `json:"comments"`
+
+	UserID   string `json:"userId"`
+	Name     string `json:"name"`
+	Nickname string `json:"nickname"`
+	Avatar   string `json:"avatar"`
 }

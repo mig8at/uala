@@ -6,6 +6,5 @@ import (
 )
 
 type Service interface {
-	Paginate(ctx context.Context, id string, limit, offset int) ([]*models.Tweet, error)
-	SyncData(ctx context.Context) error
+	Paginate(ctx context.Context, id string, page, size int) ([]*models.Timeline, error)
 }

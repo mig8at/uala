@@ -6,7 +6,5 @@ import (
 )
 
 type Repository interface {
-	Paginate(ctx context.Context, id string, limit, offset int) ([]*models.Tweet, error)
-	SaveTweet(ctx context.Context, tweet *models.Tweet) error
-	SaveUser(ctx context.Context, user *models.User) error
+	Paginate(ctx context.Context, id string, page, size int) ([]*models.Timeline, error)
 }

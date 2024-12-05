@@ -1,6 +1,7 @@
 package config
 
 import (
+	"context"
 	"log"
 	"tweet-service/internal/domain/models"
 
@@ -55,6 +56,12 @@ func (c *Config) Sqlite() *gorm.DB {
 
 func (c *Config) Redis() *redis.Client {
 	rdb := redis.NewClient(c.RedisOptions)
+
+	if err := rdb.Ping(context.Background()).Err(); err != nil {
+		log.Fatalf("Error al conectar con Redis: %v", err)
+	}
+
+	log.Println("Conectado a Redis exitosamente")
 
 	return rdb
 }

@@ -1,11 +1,8 @@
 package main
 
 import (
-	"context"
-	"log"
 	"timeline-service/config"
 	"timeline-service/internal/application"
-	"timeline-service/internal/infrastructure/clients"
 	"timeline-service/internal/infrastructure/cron"
 	"timeline-service/internal/infrastructure/http"
 	"timeline-service/internal/infrastructure/repository"
@@ -19,31 +16,20 @@ func main() {
 	cfg := config.LoadConfig()
 	engine := gin.Default()
 	validate := validator.New()
-	bager := cfg.Badger()
+	redis := cfg.Redis()
+
+	precess := cron.NewCron(redis)
+
+	go precess.ProcessTweets()
 
 	// Inicializar repositorio
-	repo := repository.NewRepository(bager)
+	repo := repository.NewRepository(redis)
 
-	client := clients.NewClient()
 	// Inicializar servicios
-	service := application.NewService(repo, client)
-
-	// Inicializar el cron con el servicio
-	cronJob := cron.NewSyncData("@every 3s", service)
-
-	// Iniciar el cron
-	ctx := context.Background()
-	if err := cronJob.Start(ctx); err != nil {
-		log.Fatalf("Error al iniciar el cron: %v", err)
-	}
+	service := application.NewService(repo)
 
 	httpServer := http.NewHTTPServer(engine, service, validate)
-	// Ejecutar el servidor HTTP
-	go httpServer.Run(cfg.Port)
 
-	// Esperar a que el contexto se cancele
-	<-ctx.Done()
+	httpServer.Run(cfg.Port)
 
-	// Detener el cron
-	cronJob.Stop()
 }

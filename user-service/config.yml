@@ -2,7 +2,7 @@ server:
   port: ":8080"
 db:
   redis: 
-      addr: "redis:6379"
+      addr: "localhost:6379"
       password: ""
       db: 0
   sqlite: "./sqlite.db"

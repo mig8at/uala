@@ -73,3 +73,5 @@ func TestUserService_Create_RepositoryError(t *testing.T) {
 
 	mockRepo.AssertExpectations(t)
 }
+
+//mockery --name=UserService --dir=./internal/ports --output=./internal/mocks --outpkg=mocks --filename=user_service.go

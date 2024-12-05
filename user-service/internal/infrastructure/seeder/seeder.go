@@ -208,6 +208,17 @@ func (s *Seeder) Seed() {
 			log.Fatalf("Error al insertar usuario %s: %v", user.Email, err)
 		}
 
+		// insertar usuario en Redis
+		userData, err := redisUser(&user)
+		if err != nil {
+			log.Fatalf("Error al serializar usuario %s: %v", user.Email, err)
+		}
+
+		key := fmt.Sprintf("users:%s", user.ID)
+		if err := s.redis.Set(context.Background(), key, userData, 0).Err(); err != nil {
+			log.Fatalf("Error al guardar usuario %s en Redis: %v", user.Email, err)
+		}
+
 		// Obtener una lista de otros usuarios (excluyendo al usuario actual)
 		var otherUsers []models.User
 		for _, u := range users {

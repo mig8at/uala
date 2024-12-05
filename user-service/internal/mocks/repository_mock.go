@@ -6,8 +6,6 @@ import (
 	context "context"
 	dto "user_service/internal/application/dto"
 
-	gorm "gorm.io/gorm"
-
 	mock "github.com/stretchr/testify/mock"
 
 	models "user_service/internal/domain/models"
@@ -126,12 +124,12 @@ func (_m *UserRepository) Following(ctx context.Context, id string, page int, li
 	return r0, r1
 }
 
-// GetById provides a mock function with given fields: ctx, id
-func (_m *UserRepository) GetById(ctx context.Context, id string) (*models.User, error) {
+// GetByID provides a mock function with given fields: ctx, id
+func (_m *UserRepository) GetByID(ctx context.Context, id string) (*models.User, error) {
 	ret := _m.Called(ctx, id)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetById")
+		panic("no return value specified for GetByID")
 	}
 
 	var r0 *models.User
@@ -154,26 +152,6 @@ func (_m *UserRepository) GetById(ctx context.Context, id string) (*models.User,
 	}
 
 	return r0, r1
-}
-
-// GetDB provides a mock function with no fields
-func (_m *UserRepository) GetDB() *gorm.DB {
-	ret := _m.Called()
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetDB")
-	}
-
-	var r0 *gorm.DB
-	if rf, ok := ret.Get(0).(func() *gorm.DB); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*gorm.DB)
-		}
-	}
-
-	return r0
 }
 
 // Paginate provides a mock function with given fields: ctx, page, limit
@@ -206,11 +184,6 @@ func (_m *UserRepository) Paginate(ctx context.Context, page int, limit int) ([]
 	return r0, r1
 }
 
-// SetDB provides a mock function with given fields: db
-func (_m *UserRepository) SetDB(db *gorm.DB) {
-	_m.Called(db)
-}
-
 // Unfollow provides a mock function with given fields: ctx, id, followerID
 func (_m *UserRepository) Unfollow(ctx context.Context, id string, followerID string) error {
 	ret := _m.Called(ctx, id, followerID)
@@ -227,36 +200,6 @@ func (_m *UserRepository) Unfollow(ctx context.Context, id string, followerID st
 	}
 
 	return r0
-}
-
-// Update provides a mock function with given fields: ctx, id, user
-func (_m *UserRepository) Update(ctx context.Context, id string, user *dto.UpdateUser) (*models.User, error) {
-	ret := _m.Called(ctx, id, user)
-
-	if len(ret) == 0 {
-		panic("no return value specified for Update")
-	}
-
-	var r0 *models.User
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, *dto.UpdateUser) (*models.User, error)); ok {
-		return rf(ctx, id, user)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, *dto.UpdateUser) *models.User); ok {
-		r0 = rf(ctx, id, user)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*models.User)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string, *dto.UpdateUser) error); ok {
-		r1 = rf(ctx, id, user)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
 }
 
 // NewUserRepository creates a new instance of UserRepository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

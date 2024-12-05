@@ -34,3 +34,5 @@ func main() {
 	httpServer := http.NewHTTPServer(engine, service, validate)
 	httpServer.Run(cfg.Port)
 }
+
+//mockery --name=UserRepository --dir=./internal/interfaces --output=./internal/mocks --outpkg=mocks --filename=repository_mock.go
