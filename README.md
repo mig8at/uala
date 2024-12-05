@@ -35,36 +35,36 @@ Cada servicio tiene la misma estructura base:
 
 # User-Service: Rutas disponibles
 
-POST localhost:8080/users
+POST http://localhost:8080/users
 - Función: Crear un nuevo usuario en el sistema.
 - Autenticación: No requerida.
 
-POST localhost:8080/users/:id/follow
+POST http://localhost:8080/users/:id/follow
 - Función: Permitir que un usuario autenticado siga a otro usuario identificado por `id`.
 - Autenticación: Requerida mediante un header con el formato:
   User-ID: 2a42c7ae-7f78-4e36-8358-902342fe23f1
 
-POST localhost:8080/users/:id/unfollow
+POST http://localhost:8080/users/:id/unfollow
 - Función: Permitir que un usuario autenticado deje de seguir a otro usuario identificado por `id`.
 - Autenticación: Requerida mediante un header con el formato:
   User-ID: 2a42c7ae-7f78-4e36-8358-902342fe23f1
 
 # Tweets-Service: Rutas disponibles
 
-POST localhost:8081/tweets
+POST http://localhost:8081/tweets
 - Función: Crear un tweet para un usuario autenticado.
 - Autenticación: Requerida mediante un header con el formato:
   User-ID: 2a42c7ae-7f78-4e36-8358-902342fe23f1
 - Notas: Asegurar que el tweet no supere los 280 caracteres.
 
-DELETE localhost:8081/tweets/:id
+DELETE http://localhost:8081/tweets/:id
 - Función: Permitir que un usuario autenticado elimine uno de sus tweets.
 - Autenticación: Requerida mediante un header con el formato:
   User-ID: 2a42c7ae-7f78-4e36-8358-902342fe23f1
 
 # Timeline-Service: Rutas disponibles
 
-GET localhost:8082/paginate
+GET http://localhost:8082/paginate
 - Función: Obtener un timeline paginado con los tweets de los usuarios seguidos por un usuario autenticado.
 - Autenticación: Requerida mediante un header con el formato:
   User-ID: 2a42c7ae-7f78-4e36-8358-902342fe23f1
