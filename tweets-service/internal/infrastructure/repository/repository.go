@@ -160,14 +160,12 @@ func cleanSpaces(input string) string {
 
 func newTweet(tw *models.Tweet) ([]byte, error) {
 	jsonData, err := json.Marshal(struct {
-		ID       string `json:"id"`
 		UserID   string `json:"userId"`
 		Content  string `json:"content"`
 		Likes    int    `json:"likes"`
 		Shares   int    `json:"shares"`
 		Comments int    `json:"comments"`
 	}{
-		ID:       tw.ID,
 		UserID:   tw.UserID,
 		Content:  tw.Content,
 		Likes:    tw.Likes,

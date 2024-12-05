@@ -100,7 +100,7 @@ func (c *cron) processTweet(tweetID string) error {
 		return fmt.Errorf("error al actualizar los timelines: %w", err)
 	}
 
-	fmt.Printf("Procesado tweet: ID=%s\n", tweet.ID)
+	fmt.Printf("Procesado tweet: ID=%s\n", tweetID)
 	return nil
 }
 
