@@ -22,7 +22,6 @@ func NewRepository(db *gorm.DB, redis *redis.Client) interfaces.UserRepository {
 	return &repository{db: db, redis: redis}
 }
 
-// CreateUser crea un nuevo usuario en la base de datos y lo almacena en Redis.
 func (r *repository) Create(ctx context.Context, createUser *dto.CreateUser) (*models.User, error) {
 	userModel := &models.User{
 		Name:     createUser.Name,
@@ -62,38 +61,6 @@ func (r *repository) Create(ctx context.Context, createUser *dto.CreateUser) (*m
 	return userModel, nil
 }
 
-// GetUserByID obtiene un usuario por su ID.
-func (r *repository) GetByID(ctx context.Context, id string) (*models.User, error) {
-	user := &models.User{}
-	if err := r.db.WithContext(ctx).First(user, "id = ?", id).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, fmt.Errorf("usuario no encontrado")
-		}
-		return nil, fmt.Errorf("error al obtener el usuario: %w", err)
-	}
-	return user, nil
-}
-
-// PaginateUsers devuelve una lista paginada de usuarios ordenados por seguidores.
-func (r *repository) Paginate(ctx context.Context, page, limit int) ([]models.User, error) {
-	offset := (page - 1) * limit
-	var users []models.User
-
-	if err := r.db.WithContext(ctx).
-		Order("followers DESC").
-		Offset(offset).
-		Limit(limit).
-		Find(&users).Error; err != nil {
-		if ctx.Err() == context.DeadlineExceeded {
-			return nil, fmt.Errorf("operación cancelada por exceder el límite de tiempo")
-		}
-		return nil, fmt.Errorf("error al obtener usuarios: %w", err)
-	}
-
-	return users, nil
-}
-
-// Follow permite que un usuario siga a otro usuario.
 func (r *repository) Follow(ctx context.Context, userID, followerID string) error {
 	if userID == followerID {
 		return fmt.Errorf("un usuario no puede seguirse a sí mismo")
@@ -160,7 +127,6 @@ func (r *repository) Follow(ctx context.Context, userID, followerID string) erro
 	return err
 }
 
-// Unfollow permite que un usuario deje de seguir a otro usuario.
 func (r *repository) Unfollow(ctx context.Context, userID, followerID string) error {
 	if userID == followerID {
 		return fmt.Errorf("un usuario no puede dejar de seguirse a sí mismo")
@@ -202,50 +168,4 @@ func (r *repository) Unfollow(ctx context.Context, userID, followerID string) er
 	})
 
 	return err
-}
-
-// GetFollowers obtiene una lista paginada de los seguidores de un usuario.
-func (r *repository) Followers(ctx context.Context, userID string, page, limit int) ([]models.User, error) {
-	offset := (page - 1) * limit
-	var users []models.User
-
-	if err := r.db.WithContext(ctx).
-		Model(&models.Follower{}).
-		Select("users.*").
-		Joins("JOIN users ON followers.follower_id = users.id").
-		Where("followers.user_id = ?", userID).
-		Order("users.followers DESC").
-		Offset(offset).
-		Limit(limit).
-		Find(&users).Error; err != nil {
-		if ctx.Err() == context.DeadlineExceeded {
-			return nil, fmt.Errorf("operación cancelada por exceder el límite de tiempo")
-		}
-		return nil, fmt.Errorf("error al obtener seguidores: %w", err)
-	}
-
-	return users, nil
-}
-
-// GetFollowing obtiene una lista paginada de los usuarios que sigue un usuario.
-func (r *repository) Following(ctx context.Context, userID string, page, limit int) ([]models.User, error) {
-	offset := (page - 1) * limit
-	var users []models.User
-
-	if err := r.db.WithContext(ctx).
-		Model(&models.Follower{}).
-		Select("users.*").
-		Joins("JOIN users ON followers.user_id = users.id").
-		Where("followers.follower_id = ?", userID).
-		Order("users.followers DESC").
-		Offset(offset).
-		Limit(limit).
-		Find(&users).Error; err != nil {
-		if ctx.Err() == context.DeadlineExceeded {
-			return nil, fmt.Errorf("operación cancelada por exceder el límite de tiempo")
-		}
-		return nil, fmt.Errorf("error al obtener seguidos: %w", err)
-	}
-
-	return users, nil
 }

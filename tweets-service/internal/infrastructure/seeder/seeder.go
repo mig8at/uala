@@ -26,16 +26,16 @@ func NewSeeder(db *gorm.DB, redis *redis.Client, repo interfaces.TweetRepository
 
 func generateRandomContent(rnd *rand.Rand) string {
 	phrases := []string{
-		"Hello, World!", "Exploring the wonders of Go!", "Cloud development is amazing!",
-		"Writing clean code is an art.", "Have you tried learning a new language?",
-		"Backend development is my passion.", "Debugging is like solving a mystery.",
-		"Unit tests are essential for good software.", "Open source contributions are fulfilling.",
-		"Always remember to document your code.", "Coding marathons are intense but fun!",
-		"The future is in the cloud.", "Embrace the challenges of learning new tech.",
-		"Startups need great software architects.", "APIs are the backbone of modern software.",
-		"The beauty of algorithms is unmatched.", "Write once, run anywhere!",
-		"Debugging can be frustrating but rewarding.", "Why is Go so fast? Explore and learn.",
-		"Let's simplify things with microservices.",
+		"¡Hola, Mundo!", "¡Explorando las maravillas de Go!", "¡El desarrollo en la nube es asombroso!",
+		"Escribir código limpio es un arte.", "¿Has intentado aprender un nuevo idioma?",
+		"El desarrollo backend es mi pasión.", "Depurar es como resolver un misterio.",
+		"Las pruebas unitarias son esenciales para un buen software.", "Las contribuciones al código abierto son gratificantes.",
+		"Siempre recuerda documentar tu código.", "¡Los maratones de programación son intensos pero divertidos!",
+		"El futuro está en la nube.", "Abraza los desafíos de aprender nuevas tecnologías.",
+		"Las startups necesitan grandes arquitectos de software.", "Las APIs son la columna vertebral del software moderno.",
+		"La belleza de los algoritmos es inigualable.", "¡Escribe una vez, ejecuta en cualquier lugar!",
+		"Depurar puede ser frustrante pero gratificante.", "¿Por qué Go es tan rápido? Explora y aprende.",
+		"Vamos a simplificar las cosas con microservicios.",
 	}
 	content := []string{}
 

@@ -3,7 +3,6 @@ package http
 import (
 	"fmt"
 	"net/http"
-	"strconv"
 	"user_service/internal/application/dto"
 	"user_service/internal/interfaces"
 
@@ -37,12 +36,8 @@ func (s *HTTPServer) registerRoutes() {
 	s.engine.POST("/users", s.create)
 	authorized := s.engine.Group("/", AuthMiddleware())
 	{
-		authorized.GET("/users", s.paginate)
-		authorized.GET("/users/:id", s.getById)
 		authorized.POST("/users/:id/follow", s.follow)
 		authorized.POST("/users/:id/unfollow", s.unfollow)
-		authorized.GET("/users/:id/followers", s.followers)
-		authorized.GET("/users/:id/following", s.following)
 	}
 }
 
@@ -72,37 +67,6 @@ func (s *HTTPServer) create(c *gin.Context) {
 	c.JSON(http.StatusCreated, createdUser)
 }
 
-func (s *HTTPServer) paginate(c *gin.Context) {
-	page := c.DefaultQuery("page", "1")
-	limit := c.DefaultQuery("limit", "10")
-
-	// Convertir los parámetros a enteros
-	pageInt, _ := strconv.Atoi(page)
-	limitInt, _ := strconv.Atoi(limit)
-
-	// Obtener los usuarios paginados
-	users, err := s.userService.Paginate(c.Request.Context(), pageInt, limitInt)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	// Responder con los usuarios paginados
-	c.JSON(http.StatusOK, users)
-}
-
-func (s *HTTPServer) getById(c *gin.Context) {
-	id := c.Param("id")
-
-	user, err := s.userService.GetById(c.Request.Context(), id)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, user)
-}
-
 func (s *HTTPServer) follow(c *gin.Context) {
 	userID, _ := c.Get("userID")
 	id := userID.(string)
@@ -129,38 +93,4 @@ func (s *HTTPServer) unfollow(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Usuario dejado de seguir correctamente."})
-}
-
-func (s *HTTPServer) followers(c *gin.Context) {
-	id := c.Param("id")
-	page := c.DefaultQuery("page", "1")
-	limit := c.DefaultQuery("limit", "10")
-
-	pageInt, _ := strconv.Atoi(page)
-	limitInt, _ := strconv.Atoi(limit)
-
-	followers, err := s.userService.Followers(c.Request.Context(), id, pageInt, limitInt)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, followers)
-}
-
-func (s *HTTPServer) following(c *gin.Context) {
-	id := c.Param("id")
-	page := c.DefaultQuery("page", "1")
-	limit := c.DefaultQuery("limit", "10")
-
-	pageInt, _ := strconv.Atoi(page)
-	limitInt, _ := strconv.Atoi(limit)
-
-	following, err := s.userService.Following(c.Request.Context(), id, pageInt, limitInt)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, following)
 }
