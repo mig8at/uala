@@ -1,4 +1,8 @@
 ## **Descripción del Proyecto**
+
+![Texto alternativo](diagram.svg)
+
+
 Este proyecto es una implementación de una arquitectura de microservicios en **Go (Golang)** que incluye tres servicios principales:
 
 1. **User-Service**: Gestión de usuarios, incluyendo su almacenamiento en SQLite y cacheo en Redis.
